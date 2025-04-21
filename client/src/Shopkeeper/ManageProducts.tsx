@@ -17,7 +17,7 @@ const ManageProducts = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/products');
+        const response = await axios.get('https://rogshop.onrender.com/api/products');
         setProducts(response.data.map((p: Product) => ({ ...p, isEditing: false })));
       } catch (err) {
         setError('Failed to fetch products');
@@ -49,7 +49,7 @@ const ManageProducts = () => {
 
   const handleSave = async (product: Product) => {
     try {
-      await axios.put('http://localhost:5000/api/products', {
+      await axios.put('https://rogshop.onrender.com/api/products', {
         productName: product.productName,
         newProductName: product.productName,
         price: product.price,
@@ -63,7 +63,7 @@ const ManageProducts = () => {
 
   const handleDelete = async (productName: string) => {
     try {
-      await axios.delete('http://localhost:5000/api/products', {
+      await axios.delete('https://rogshop.onrender.com/api/products', {
         data: { productName },
       });
       setProducts(products.filter((p) => p.productName !== productName));

@@ -26,7 +26,7 @@ const ShopkeeperOrder = () => {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/orders', {
+        const response = await axios.get('https://rogshop.onrender.com/api/orders', {
           params: {
             shopName: shopName || undefined,
             email: email || undefined,
@@ -44,7 +44,7 @@ const ShopkeeperOrder = () => {
 
   const handleStatusChange = async (orderId: string) => {
     try {
-      await axios.put(`http://localhost:5000/api/orders/${orderId}`, {
+      await axios.put(`https://rogshop.onrender.com/api/orders/${orderId}`, {
         received: 'Complete', // Update the status to "Complete"
       });
 

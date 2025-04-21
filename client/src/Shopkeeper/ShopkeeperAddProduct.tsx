@@ -31,7 +31,7 @@ const ShopkeeperAddProduct = () => {
     const fetchCategories = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:5000/api/products-categories?shopkeeperId=${shopkeeperId}&shopName=${shopName}`
+          `https://rogshop.onrender.com/api/products-categories?shopkeeperId=${shopkeeperId}&shopName=${shopName}`
         );
         setCategories(response.data.categories || []);
       } catch (error) {
@@ -81,7 +81,7 @@ const ShopkeeperAddProduct = () => {
     formDataToSend.append('category', formData.category); // Include category
 
     try {
-      const response = await axios.post('http://localhost:5000/api/products', formDataToSend, {
+      const response = await axios.post('https://rogshop.onrender.com/api/products', formDataToSend, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -107,7 +107,7 @@ const ShopkeeperAddProduct = () => {
         categories: [newCategory.trim()],
       };
 
-      const response = await axios.post('http://localhost:5000/api/products-categories', payload);
+      const response = await axios.post('https://rogshop.onrender.com/api/products-categories', payload);
       setCategories(response.data.shopCategories.categories); // Update categories
       setCategoryMessage('Category added successfully');
       setNewCategory(''); // Clear the input
