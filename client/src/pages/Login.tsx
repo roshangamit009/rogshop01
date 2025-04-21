@@ -42,7 +42,7 @@ const Login = () => {
 
   return (
     <div style={styles.container}>
-      <h2 style={styles.heading}>Login</h2>
+      <h2 style={{ ...styles.heading, textAlign: 'center' as 'center' }}>Login</h2>
       <form onSubmit={handleSubmit}>
         <input
           type="email"
@@ -66,14 +66,24 @@ const Login = () => {
           Login
         </button>
       </form>
-      {message && <p style={{ ...styles.message, color: 'red' }}>{message}</p>}
-      <p style={styles.linkText}>
+      {message && (
+        <p
+          style={{
+            ...styles.message,
+            color: 'red',
+            textAlign: 'center' as 'center', // Explicitly cast textAlign
+          }}
+        >
+          {message}
+        </p>
+      )}
+      <p style={{ ...styles.linkText, textAlign: 'center' as 'center' }}>
         Don't have an account?{' '}
         <Link to="/register" style={styles.link}>
           Register here
         </Link>
       </p>
-      <p style={styles.linkText}>
+      <p style={{ ...styles.linkText, textAlign: 'center' as 'center' }}>
         Are you a shopkeeper?{' '}
         <Link to="/shopkeeperlogin" style={styles.link}>
           Login as Shopkeeper
@@ -93,7 +103,7 @@ const styles = {
     boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
   },
   heading: {
-    textAlign: 'center',
+    textAlign: 'center' as 'center', // Explicitly cast textAlign
     marginBottom: '1rem',
   },
   input: {
@@ -113,11 +123,11 @@ const styles = {
     cursor: 'pointer',
   },
   message: {
-    textAlign: 'center',
+    textAlign: 'center' as 'center', // Explicitly cast textAlign
     marginTop: '1rem',
   },
   linkText: {
-    textAlign: 'center',
+    textAlign: 'center' as 'center', // Explicitly cast textAlign
     marginTop: '1rem',
   },
   link: {

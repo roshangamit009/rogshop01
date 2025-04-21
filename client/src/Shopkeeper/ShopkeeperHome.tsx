@@ -38,7 +38,7 @@ const ShopkeeperHome = () => {
   };
 
   return (
-    <div style={styles.container}>
+    <div style={{ ...styles.container, flexDirection: 'column' as 'column' }}>
       {/* Header */}
       <header style={styles.header}>
         <h1 style={styles.headerTitle}>{shopkeeperName}'s Dashboard</h1>
@@ -54,6 +54,7 @@ const ShopkeeperHome = () => {
               ...styles.sidebarButton,
               backgroundColor: activeTab === 'dashboard' ? '#007bff' : '#f8f9fa',
               color: activeTab === 'dashboard' ? '#fff' : '#000',
+              textAlign: 'left' as 'left', // Explicitly cast textAlign
             }}
           >
             Dashboard
@@ -64,6 +65,7 @@ const ShopkeeperHome = () => {
               ...styles.sidebarButton,
               backgroundColor: activeTab === 'add-product' ? '#007bff' : '#f8f9fa',
               color: activeTab === 'add-product' ? '#fff' : '#000',
+              textAlign: 'left' as 'left', // Explicitly cast textAlign
             }}
           >
             Add Product
@@ -74,6 +76,7 @@ const ShopkeeperHome = () => {
               ...styles.sidebarButton,
               backgroundColor: activeTab === 'orders' ? '#007bff' : '#f8f9fa',
               color: activeTab === 'orders' ? '#fff' : '#000',
+              textAlign: 'left' as 'left', // Explicitly cast textAlign
             }}
           >
             Orders
@@ -84,6 +87,7 @@ const ShopkeeperHome = () => {
               ...styles.sidebarButton,
               backgroundColor: activeTab === 'manage-products' ? '#007bff' : '#f8f9fa',
               color: activeTab === 'manage-products' ? '#fff' : '#000',
+              textAlign: 'left' as 'left', // Explicitly cast textAlign
             }}
           >
             Manage Products
@@ -100,7 +104,7 @@ const ShopkeeperHome = () => {
 const styles = {
   container: {
     display: 'flex',
-    flexDirection: 'column',
+    flexDirection: 'column' as 'column', // Explicitly cast flexDirection
     height: '100vh',
   },
   header: {
@@ -135,7 +139,7 @@ const styles = {
     width: '100%',
     padding: '0.75rem',
     marginBottom: '0.5rem',
-    textAlign: 'left',
+    textAlign: 'left' as 'left', // Explicitly cast textAlign
     border: 'none',
     borderRadius: '5px',
     cursor: 'pointer',

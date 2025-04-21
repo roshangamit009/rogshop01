@@ -17,9 +17,9 @@ const Admin = () => {
   };
 
   return (
-    <div style={styles.container}>
+    <div style={{ ...styles.container, flexDirection: 'column' as 'column' }}>
       {/* Header Navigation Bar */}
-      <header style={styles.header}>
+      <header style={{ ...styles.header, textAlign: 'center' as 'center' }}>
         <h1 style={styles.headerTitle}>Admin Panel</h1>
       </header>
 
@@ -32,6 +32,7 @@ const Admin = () => {
               ...styles.sidebarButton,
               backgroundColor: activeTab === 'dashboard' ? '#007bff' : '#f8f9fa',
               color: activeTab === 'dashboard' ? '#fff' : '#000',
+              textAlign: 'left' as 'left', // Explicitly cast textAlign
             }}
           >
             Dashboard
@@ -42,6 +43,7 @@ const Admin = () => {
               ...styles.sidebarButton,
               backgroundColor: activeTab === 'add-shopkeeper' ? '#007bff' : '#f8f9fa',
               color: activeTab === 'add-shopkeeper' ? '#fff' : '#000',
+              textAlign: 'left' as 'left', // Explicitly cast textAlign
             }}
           >
             Add Shopkeeper
@@ -58,14 +60,14 @@ const Admin = () => {
 const styles = {
   container: {
     display: 'flex',
-    flexDirection: 'column',
+    flexDirection: 'column' as 'column', // Explicitly cast flexDirection
     height: '100vh',
   },
   header: {
     backgroundColor: '#007bff',
     color: '#fff',
     padding: '1rem',
-    textAlign: 'center',
+    textAlign: 'center' as 'center', // Explicitly cast textAlign
   },
   headerTitle: {
     margin: 0,
@@ -86,7 +88,7 @@ const styles = {
     width: '100%',
     padding: '0.75rem',
     marginBottom: '0.5rem',
-    textAlign: 'left',
+    textAlign: 'left' as 'left', // Explicitly cast textAlign
     border: 'none',
     borderRadius: '5px',
     cursor: 'pointer',

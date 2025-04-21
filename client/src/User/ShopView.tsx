@@ -3,23 +3,22 @@ import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const ShopView = () => {
-  const { shopId } = useParams(); // Get shop ID from the URL
-  const location = useLocation(); // Get state passed via navigate
+  const { shopId } = useParams();
+  const location = useLocation();
   const navigate = useNavigate();
-  const shopName = location.state?.shopName || 'Shop'; // Get shopName from state or default to 'Shop'
+  const shopName = location.state?.shopName || 'Shop';
 
-  const [products, setProducts] = useState([]); // Products for the shop
-  const [categories, setCategories] = useState([]); // Categories for the shop
-  const [searchTerm, setSearchTerm] = useState(''); // State for search term
-  const [selectedCategory, setSelectedCategory] = useState(''); // State for selected category
-  const [selectedQuantities, setSelectedQuantities] = useState({}); // State for selected quantities
-  const [dropdownVisible, setDropdownVisible] = useState(false); // State for dropdown visibility
-  const [orders, setOrders] = useState([]); // State for user orders
-  const [viewOrders, setViewOrders] = useState(false); // State to toggle order view
+  const [products, setProducts] = useState<any[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedQuantities, setSelectedQuantities] = useState<{ [key: string]: number }>({});
+  const [dropdownVisible, setDropdownVisible] = useState(false);
+  const [orders, setOrders] = useState<any[]>([]);
+  const [viewOrders, setViewOrders] = useState(false);
 
-  const userEmail = localStorage.getItem('userEmail'); // Assuming userEmail is stored in localStorage
+  const userEmail = localStorage.getItem('userEmail');
 
-  // Fetch products related to the shop using shopId and shopName
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -31,11 +30,9 @@ const ShopView = () => {
         console.error('Error fetching products:', error);
       }
     };
-
     fetchProducts();
   }, [shopId, shopName]);
 
-  // Fetch categories related to the shop using shopId and shopName
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -47,45 +44,39 @@ const ShopView = () => {
         console.error('Error fetching categories:', error);
       }
     };
-
     fetchCategories();
   }, [shopId, shopName]);
 
-  // Fetch orders for the logged-in user
   useEffect(() => {
     const fetchOrders = async () => {
       try {
         const response = await axios.get('http://localhost:5000/api/orders', {
-          params: { email: userEmail }, // Pass userEmail as a query parameter
+          params: { email: userEmail },
         });
         setOrders(response.data);
       } catch (error) {
         console.error('Error fetching orders:', error);
       }
     };
-
     fetchOrders();
   }, [userEmail]);
 
-  // Handle quantity increment
-  const incrementQuantity = (productId, maxQuantity) => {
+  const incrementQuantity = (productId: string, maxQuantity: number) => {
     setSelectedQuantities((prev) => ({
       ...prev,
       [productId]: Math.min((prev[productId] || 1) + 1, maxQuantity),
     }));
   };
 
-  // Handle quantity decrement
-  const decrementQuantity = (productId) => {
+  const decrementQuantity = (productId: string) => {
     setSelectedQuantities((prev) => ({
       ...prev,
       [productId]: Math.max((prev[productId] || 1) - 1, 1),
     }));
   };
 
-  // Add a product to the cart
-  const addToCart = async (product) => {
-    const quantity = selectedQuantities[product._id] || 1; // Default to 1 if no quantity is selected
+  const addToCart = async (product: any) => {
+    const quantity = selectedQuantities[product._id] || 1;
     const cartItem = {
       userEmail,
       shopId,
@@ -97,28 +88,26 @@ const ShopView = () => {
 
     try {
       await axios.post('http://localhost:5000/api/cart', cartItem);
-      navigate('/cart'); // Navigate to the Cart page after adding the product
+      navigate('/cart');
     } catch (error) {
       console.error('Error adding to cart:', error);
     }
   };
 
-  // Handle dropdown option click
-  const handleDropdownOption = (option) => {
-    setDropdownVisible(false); // Hide the dropdown
+  const handleDropdownOption = (option: string) => {
+    setDropdownVisible(false);
     if (option === 'myOrders') {
-      setViewOrders(true); // Show orders in the current page
+      setViewOrders(true);
     } else if (option === 'cart') {
-      navigate('/cart'); // Navigate to Cart page
+      navigate('/cart');
     } else if (option === 'myProfile') {
-      navigate('/profile'); // Navigate to My Profile page
+      navigate('/profile');
     } else if (option === 'logout') {
-      localStorage.removeItem('userEmail'); // Clear user email from localStorage
-      navigate('/login'); // Navigate to Login page
+      localStorage.removeItem('userEmail');
+      navigate('/login');
     }
   };
 
-  // Filter products based on search term and selected category
   const filteredProducts = products.filter((product) => {
     const matchesSearch = product.productName.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory ? product.category === selectedCategory : true;
@@ -138,37 +127,22 @@ const ShopView = () => {
           style={styles.searchBar}
         />
         <div style={styles.userEmailContainer}>
-          <span
-            style={styles.userEmail}
-            onClick={() => setDropdownVisible((prev) => !prev)} // Toggle dropdown visibility
-          >
+          <span style={styles.userEmail} onClick={() => setDropdownVisible((prev) => !prev)}>
             {userEmail}
           </span>
           {dropdownVisible && (
             <div style={styles.dropdown}>
-              <div
-                style={styles.dropdownItem}
-                onClick={() => handleDropdownOption('myOrders')}
-              >
-                <i style={styles.icon} className="fas fa-box"></i> My Orders
+              <div style={styles.dropdownItem} onClick={() => handleDropdownOption('myOrders')}>
+                🧾 My Orders
               </div>
-              <div
-                style={styles.dropdownItem}
-                onClick={() => handleDropdownOption('cart')}
-              >
-                <i style={styles.icon} className="fas fa-shopping-cart"></i> Cart
+              <div style={styles.dropdownItem} onClick={() => handleDropdownOption('cart')}>
+                🛒 Cart
               </div>
-              <div
-                style={styles.dropdownItem}
-                onClick={() => handleDropdownOption('myProfile')}
-              >
-                <i style={styles.icon} className="fas fa-user"></i> My Profile
+              <div style={styles.dropdownItem} onClick={() => handleDropdownOption('myProfile')}>
+                👤 My Profile
               </div>
-              <div
-                style={styles.dropdownItem}
-                onClick={() => handleDropdownOption('logout')}
-              >
-                <i style={styles.icon} className="fas fa-sign-out-alt"></i> Logout
+              <div style={styles.dropdownItem} onClick={() => handleDropdownOption('logout')}>
+                🚪 Logout
               </div>
             </div>
           )}
@@ -177,7 +151,6 @@ const ShopView = () => {
 
       <div style={styles.main}>
         {viewOrders ? (
-          // Display orders if "My Orders" is selected
           <div style={styles.ordersContainer}>
             <h2 style={styles.heading}>My Orders</h2>
             {orders.length > 0 ? (
@@ -198,19 +171,26 @@ const ShopView = () => {
                       <td style={styles.td}>{order._id}</td>
                       <td style={styles.td}>{order.shopName}</td>
                       <td style={styles.td}>
-                        {order.products.map((product, index) => (
+                        {order.products.map((product: any, index: number) => (
                           <div key={index}>
                             {product.productName} (x{product.quantity})
                           </div>
                         ))}
                       </td>
                       <td style={styles.td}>
-                        {order.products.reduce((total, product) => total + product.quantity, 0)}
+                        {order.products.reduce(
+                          (total: number, product: any) => total + product.quantity,
+                          0
+                        )}
                       </td>
                       <td style={styles.td}>
-                        $
+                        ₹
                         {order.products
-                          .reduce((total, product) => total + product.price * product.quantity, 0)
+                          .reduce(
+                            (total: number, product: any) =>
+                              total + product.price * product.quantity,
+                            0
+                          )
                           .toFixed(2)}
                       </td>
                       <td style={styles.td}>{order.address}</td>
@@ -223,7 +203,6 @@ const ShopView = () => {
             )}
           </div>
         ) : (
-          // Display products if "My Orders" is not selected
           <>
             <aside style={styles.sidebar}>
               <h3 style={styles.sidebarHeading}>Categories</h3>
@@ -267,7 +246,7 @@ const ShopView = () => {
                     <div style={styles.productDetails}>
                       <h3 style={styles.productName}>{product.productName}</h3>
                       <p style={styles.productDetail}>
-                        <strong>Price:</strong> ${product.price}
+                        <strong>Price:</strong> ₹{product.price}
                       </p>
                       <p style={styles.productDetail}>
                         <strong>Stock:</strong> {product.quantity}
@@ -289,10 +268,7 @@ const ShopView = () => {
                           +
                         </button>
                       </div>
-                      <button
-                        style={styles.addToCartButton}
-                        onClick={() => addToCart(product)}
-                      >
+                      <button style={styles.addToCartButton} onClick={() => addToCart(product)}>
                         Add to Cart
                       </button>
                     </div>
@@ -307,7 +283,7 @@ const ShopView = () => {
   );
 };
 
-const styles = {
+const styles: { [key: string]: React.CSSProperties } = {
   container: {
     display: 'flex',
     flexDirection: 'column',
@@ -359,22 +335,8 @@ const styles = {
     cursor: 'pointer',
     borderBottom: '1px solid #ddd',
     textAlign: 'left',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
     fontSize: '1rem',
     color: '#333',
-    transition: 'background-color 0.3s ease',
-  },
-  dropdownItemLast: {
-    borderBottom: 'none',
-  },
-  dropdownItemHover: {
-    backgroundColor: '#f8f9fa',
-  },
-  icon: {
-    fontSize: '1.2rem',
-    color: '#007bff',
   },
   main: {
     display: 'flex',
@@ -399,7 +361,6 @@ const styles = {
     marginBottom: '0.5rem',
     borderRadius: '5px',
     cursor: 'pointer',
-    textAlign: 'left',
   },
   content: {
     flex: 1,
@@ -412,9 +373,6 @@ const styles = {
     gap: '1rem',
   },
   productCard: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
     padding: '1rem',
     border: '1px solid #ddd',
     borderRadius: '10px',
@@ -436,7 +394,6 @@ const styles = {
   },
   productDetails: {
     textAlign: 'left',
-    width: '100%',
   },
   productName: {
     fontSize: '1.2rem',
@@ -473,7 +430,6 @@ const styles = {
     border: 'none',
     borderRadius: '5px',
     cursor: 'pointer',
-    marginTop: '0.5rem',
   },
   ordersContainer: {
     padding: '2rem',

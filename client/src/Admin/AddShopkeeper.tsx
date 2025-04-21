@@ -1,14 +1,21 @@
 import { useState } from 'react';
 import axios from 'axios';
 
+interface FormData {
+  shopName: string;
+  email: string;
+  password: string;
+  address: string;
+}
+
 const AddShopkeeper = () => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     shopName: '',
     email: '',
     password: '',
     address: '',
   });
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState<string>('');
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -18,9 +25,12 @@ const AddShopkeeper = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:5000/api/shopkeepers', formData);
-      setMessage(response.data.message); // Display success message
-      setFormData({ shopName: '', email: '', password: '', address: '' }); // Reset form
+      const response = await axios.post<{ message: string }>(
+        'http://localhost:5000/api/shopkeepers',
+        formData
+      );
+      setMessage(response.data.message);
+      setFormData({ shopName: '', email: '', password: '', address: '' });
     } catch (error: any) {
       setMessage(error.response?.data?.message || 'An error occurred');
     }
@@ -70,7 +80,16 @@ const AddShopkeeper = () => {
           Add Shopkeeper
         </button>
       </form>
-      {message && <p style={{ ...styles.message, color: message.includes('success') ? 'green' : 'red' }}>{message}</p>}
+      {message && (
+        <p
+          style={{
+            ...styles.message,
+            color: message.includes('success') ? 'green' : 'red',
+          }}
+        >
+          {message}
+        </p>
+      )}
     </div>
   );
 };
@@ -85,7 +104,7 @@ const styles = {
     boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
   },
   heading: {
-    textAlign: 'center',
+    textAlign: 'center' as 'center',
     marginBottom: '1rem',
   },
   input: {
@@ -105,7 +124,7 @@ const styles = {
     cursor: 'pointer',
   },
   message: {
-    textAlign: 'center',
+    textAlign: 'center' as 'center',
     marginTop: '1rem',
   },
 };

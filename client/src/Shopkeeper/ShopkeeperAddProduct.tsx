@@ -2,14 +2,21 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 
 const ShopkeeperAddProduct = () => {
-  const [formData, setFormData] = useState({
-    productImage: null, // File object for the image
+  const [formData, setFormData] = useState<{
+    productImage: File | null; // Allow productImage to be File or null
+    productName: string;
+    price: string;
+    quantity: string;
+    category: string;
+  }>({
+    productImage: null,
     productName: '',
     price: '',
     quantity: '',
-    category: '', // Selected category
+    category: '',
   });
-  const [categories, setCategories] = useState([]); // Categories for the shop
+
+  const [categories, setCategories] = useState<string[]>([]); // Categories for the shop
   const [newCategory, setNewCategory] = useState(''); // New category input
   const [isOtherCategory, setIsOtherCategory] = useState(false); // Track if "Other" is selected
   const [message, setMessage] = useState('');
@@ -59,10 +66,15 @@ const ShopkeeperAddProduct = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.productImage) {
+      setMessage('Please upload a product image.');
+      return;
+    }
+
     const formDataToSend = new FormData();
     formDataToSend.append('shopkeeperId', shopkeeperId || ''); // Include shopkeeperId
     formDataToSend.append('shopName', shopName);
-    formDataToSend.append('productImage', formData.productImage as Blob);
+    formDataToSend.append('productImage', formData.productImage); // No need to cast
     formDataToSend.append('productName', formData.productName);
     formDataToSend.append('price', formData.price);
     formDataToSend.append('quantity', formData.quantity);
@@ -107,7 +119,7 @@ const ShopkeeperAddProduct = () => {
 
   return (
     <div style={styles.container}>
-      <h2 style={styles.heading}>Add Product</h2>
+      <h2 style={{ ...styles.heading, textAlign: 'center' as 'center' }}>Add Product</h2>
       <form onSubmit={handleSubmit}>
         <input
           type="file"
@@ -187,9 +199,19 @@ const ShopkeeperAddProduct = () => {
         Add Category
       </button>
 
-      {message && <p style={{ ...styles.message, color: message.includes('success') ? 'green' : 'red' }}>{message}</p>}
+      {message && (
+        <p style={{ ...styles.message, color: message.includes('success') ? 'green' : 'red', textAlign: 'center' as 'center' }}>
+          {message}
+        </p>
+      )}
       {categoryMessage && (
-        <p style={{ ...styles.message, color: categoryMessage.includes('success') ? 'green' : 'red' }}>
+        <p
+          style={{
+            ...styles.message,
+            color: categoryMessage.includes('success') ? 'green' : 'red',
+            textAlign: 'center' as 'center',
+          }}
+        >
           {categoryMessage}
         </p>
       )}
@@ -207,7 +229,7 @@ const styles = {
     boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
   },
   heading: {
-    textAlign: 'center',
+    textAlign: 'center' as 'center', // Explicitly cast textAlign
     marginBottom: '1rem',
   },
   subHeading: {
@@ -244,7 +266,7 @@ const styles = {
     marginBottom: '1rem',
   },
   message: {
-    textAlign: 'center',
+    textAlign: 'center' as 'center', // Explicitly cast textAlign
     marginTop: '1rem',
   },
 };

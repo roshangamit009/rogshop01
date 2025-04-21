@@ -31,7 +31,7 @@ const ShopkeeperLogin = () => {
 
   return (
     <div style={styles.container}>
-      <h2 style={styles.heading}>Shopkeeper Login</h2>
+      <h2 style={{ ...styles.heading, textAlign: 'center' as 'center' }}>Shopkeeper Login</h2>
       <form onSubmit={handleSubmit}>
         <input
           type="email"
@@ -55,8 +55,12 @@ const ShopkeeperLogin = () => {
           Login
         </button>
       </form>
-      {message && <p style={{ ...styles.message, color: 'red' }}>{message}</p>}
-      <p style={styles.linkText}>
+      {message && (
+        <p style={{ ...styles.message, color: 'red', textAlign: 'center' as 'center' }}>
+          {message}
+        </p>
+      )}
+      <p style={{ ...styles.linkText, textAlign: 'center' as 'center' }}>
         Are you a user?{' '}
         <Link to="/login" style={styles.link}>
           Login here
@@ -76,7 +80,7 @@ const styles = {
     boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
   },
   heading: {
-    textAlign: 'center',
+    textAlign: 'center' as 'center', // Explicitly cast textAlign
     marginBottom: '1rem',
   },
   input: {
@@ -96,11 +100,11 @@ const styles = {
     cursor: 'pointer',
   },
   message: {
-    textAlign: 'center',
+    textAlign: 'center' as 'center', // Explicitly cast textAlign
     marginTop: '1rem',
   },
   linkText: {
-    textAlign: 'center',
+    textAlign: 'center' as 'center', // Explicitly cast textAlign
     marginTop: '1rem',
   },
   link: {

@@ -2,19 +2,26 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
+// Define types
+interface Shopkeeper {
+  _id: string;
+  shopName: string;
+  email: string;
+  address: string;
+}
+
 const Home = () => {
-  const [shopkeepers, setShopkeepers] = useState([]);
-  const [searchTerm, setSearchTerm] = useState(''); // State for search term
-  const [showUserMenu, setShowUserMenu] = useState(false); // Toggle for user menu
+  const [shopkeepers, setShopkeepers] = useState<Shopkeeper[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const navigate = useNavigate();
 
-  const userEmail = localStorage.getItem('userEmail') || 'User Email'; // Get email from localStorage
+  const userEmail = localStorage.getItem('userEmail') || 'User Email';
 
-  // Fetch shopkeepers from the backend
   useEffect(() => {
     const fetchShopkeepers = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/shopkeepers');
+        const response = await axios.get<Shopkeeper[]>('http://localhost:5000/api/shopkeepers');
         setShopkeepers(response.data);
       } catch (error) {
         console.error('Error fetching shopkeepers:', error);
@@ -24,32 +31,28 @@ const Home = () => {
     fetchShopkeepers();
   }, []);
 
-  // Filter shopkeepers based on the search term
   const filteredShopkeepers = shopkeepers.filter((shopkeeper) =>
     shopkeeper.shopName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Handle navigation for user menu
-  const handleMenuClick = (option) => {
-    setShowUserMenu(false); // Close the menu
+  const handleMenuClick = (option: string) => {
+    setShowUserMenu(false);
     if (option === 'profile') {
       navigate('/profile');
     } else if (option === 'cart') {
-      navigate('/cart'); // Navigate to the Cart page
+      navigate('/cart');
     } else if (option === 'orders') {
       navigate('/orders');
     }
   };
 
-  // Handle logout
   const handleLogout = () => {
-    localStorage.clear(); // Clear all user data from localStorage
-    navigate('/login'); // Redirect to login page
+    localStorage.clear();
+    navigate('/login');
   };
 
   return (
     <div style={styles.container}>
-      {/* Header with Search Bar */}
       <header style={styles.header}>
         <h1 style={styles.heading}>Shopkeepers</h1>
         <input
@@ -60,10 +63,7 @@ const Home = () => {
           style={styles.searchBar}
         />
         <div style={styles.userSection}>
-          <div
-            style={styles.username}
-            onClick={() => setShowUserMenu(!showUserMenu)} // Toggle user menu
-          >
+          <div style={styles.username} onClick={() => setShowUserMenu(!showUserMenu)}>
             {userEmail} ▼
           </div>
           {showUserMenu && (
@@ -85,7 +85,6 @@ const Home = () => {
         </div>
       </header>
 
-      {/* Shopkeeper List */}
       <div style={styles.shopkeeperList}>
         {filteredShopkeepers.map((shopkeeper) => (
           <div key={shopkeeper._id} style={styles.shopkeeperBox}>
@@ -99,8 +98,10 @@ const Home = () => {
             <button
               style={styles.viewButton}
               onClick={() =>
-                navigate(`/shop/${shopkeeper._id}`, { state: { shopName: shopkeeper.shopName } })
-              } // Pass shopName in state
+                navigate(`/shop/${shopkeeper._id}`, {
+                  state: { shopName: shopkeeper.shopName },
+                })
+              }
             >
               View
             </button>
@@ -111,7 +112,7 @@ const Home = () => {
   );
 };
 
-const styles = {
+const styles: { [key: string]: React.CSSProperties } = {
   container: {
     maxWidth: '800px',
     margin: '2rem auto',

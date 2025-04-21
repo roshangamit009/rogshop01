@@ -1,8 +1,17 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
+// Define the Product interface
+interface Product {
+  _id: string;
+  productName: string;
+  productImage: string;
+  price: number;
+  quantity: number;
+}
+
 const ShopkeeperDashboard = () => {
-  const [products, setProducts] = useState([]);
+  const [products, setProducts] = useState<Product[]>([]); // Type the products state
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -13,7 +22,9 @@ const ShopkeeperDashboard = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/api/products?shopkeeperId=${shopkeeperId}&shopName=${shopName}`);
+        const response = await axios.get<Product[]>(
+          `http://localhost:5000/api/products?shopkeeperId=${shopkeeperId}&shopName=${shopName}`
+        );
         setProducts(response.data);
         setLoading(false);
       } catch (err) {
@@ -63,7 +74,7 @@ const styles = {
     maxWidth: '800px',
     margin: '2rem auto',
     padding: '2rem',
-    textAlign: 'center',
+    textAlign: 'center' as 'center', // Explicitly cast textAlign
     border: '1px solid #ddd',
     borderRadius: '10px',
     backgroundColor: '#f9f9f9',
@@ -85,12 +96,12 @@ const styles = {
     borderRadius: '10px',
     backgroundColor: '#fff',
     boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-    textAlign: 'left',
+    textAlign: 'left' as 'left', // Explicitly cast textAlign
   },
   productImage: {
     width: '100%',
     height: '150px',
-    objectFit: 'cover',
+    objectFit: 'cover' as 'cover', // Explicitly cast objectFit
     borderRadius: '5px',
     marginBottom: '1rem',
   },

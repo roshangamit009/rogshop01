@@ -507,6 +507,25 @@ app.post('/api/orders', async (req, res) => {
 
     await newOrder.save();
 
+    // Update stock in ShopkeeperProducts table
+    for (const product of products) {
+      const dbProduct = await ShopkeeperProducts.findOne({
+        shopkeeperId: shopId,
+        productName: product.productName,
+      });
+
+      if (!dbProduct) {
+        return res.status(404).json({ message: `Product "${product.productName}" not found` });
+      }
+
+      if (dbProduct.quantity < product.quantity) {
+        return res.status(400).json({ message: `Insufficient stock for "${product.productName}"` });
+      }
+
+      dbProduct.quantity -= product.quantity; // Reduce stock
+      await dbProduct.save();
+    }
+
     // Delete items from the cart for the user
     await Cart.deleteMany({ userEmail: email });
 
@@ -514,6 +533,23 @@ app.post('/api/orders', async (req, res) => {
   } catch (error) {
     console.error('Error creating order:', error);
     res.status(500).json({ message: 'Error creating order', error: error.message });
+  }
+});
+
+// Get orders for a specific user by email
+app.get('/api/orders', async (req, res) => {
+  const { email } = req.query;
+
+  if (!email) {
+    return res.status(400).json({ message: 'User email is required' });
+  }
+
+  try {
+    const orders = await Order.find({ email });
+    res.status(200).json(orders);
+  } catch (error) {
+    console.error('Error fetching orders:', error);
+    res.status(500).json({ message: 'Error fetching orders', error: error.message });
   }
 });
 

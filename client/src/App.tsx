@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import AddProduct from './pages/AddProduct';
+import 'bootstrap/dist/css/bootstrap.min.css';
+
 import Bill from './pages/Bill';
 import Admin from './Admin/Admin'; // Import the Admin page
 import Home from './User/Home'; // Import the Home component
