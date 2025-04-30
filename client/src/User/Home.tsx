@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-// Define types
 interface Shopkeeper {
   _id: string;
   shopName: string;
@@ -14,8 +13,9 @@ const Home = () => {
   const [shopkeepers, setShopkeepers] = useState<Shopkeeper[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const navigate = useNavigate();
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
+  const navigate = useNavigate();
   const userEmail = localStorage.getItem('userEmail') || 'User Email';
 
   useEffect(() => {
@@ -29,6 +29,10 @@ const Home = () => {
     };
 
     fetchShopkeepers();
+
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   const filteredShopkeepers = shopkeepers.filter((shopkeeper) =>
@@ -37,13 +41,9 @@ const Home = () => {
 
   const handleMenuClick = (option: string) => {
     setShowUserMenu(false);
-    if (option === 'profile') {
-      navigate('/profile');
-    } else if (option === 'cart') {
-      navigate('/cart');
-    } else if (option === 'orders') {
-      navigate('/orders');
-    }
+    if (option === 'profile') navigate('/profile');
+    else if (option === 'cart') navigate('/cart');
+    else if (option === 'orders') navigate('/orders');
   };
 
   const handleLogout = () => {
@@ -53,48 +53,38 @@ const Home = () => {
 
   return (
     <div style={styles.container}>
-      <header style={styles.header}>
-        <h1 style={styles.heading}>Shopkeepers</h1>
+      <header style={{ ...styles.header, flexDirection: isMobile ? 'column' : 'row' }}>
+        <div style={styles.topSection}>
+          <h1 style={styles.heading}>Shopkeepers</h1>
+          <div style={styles.userSection}>
+            <div style={styles.username} onClick={() => setShowUserMenu(!showUserMenu)}>
+              {userEmail} ▼
+            </div>
+            {showUserMenu && (
+              <div style={styles.userMenu}>
+                <div style={styles.menuItem} onClick={() => handleMenuClick('profile')}>My Profile</div>
+                <div style={styles.menuItem} onClick={() => handleMenuClick('cart')}>My Cart</div>
+                <div style={styles.menuItem} onClick={() => handleMenuClick('orders')}>My Orders</div>
+                <div style={styles.menuItem} onClick={handleLogout}>Logout</div>
+              </div>
+            )}
+          </div>
+        </div>
         <input
           type="text"
           placeholder="Search shops..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          style={styles.searchBar}
+          style={{ ...styles.searchBar, width: isMobile ? '100%' : '50%' }}
         />
-        <div style={styles.userSection}>
-          <div style={styles.username} onClick={() => setShowUserMenu(!showUserMenu)}>
-            {userEmail} ▼
-          </div>
-          {showUserMenu && (
-            <div style={styles.userMenu}>
-              <div style={styles.menuItem} onClick={() => handleMenuClick('profile')}>
-                My Profile
-              </div>
-              <div style={styles.menuItem} onClick={() => handleMenuClick('cart')}>
-                My Cart
-              </div>
-              <div style={styles.menuItem} onClick={() => handleMenuClick('orders')}>
-                My Orders
-              </div>
-              <div style={styles.menuItem} onClick={handleLogout}>
-                Logout
-              </div>
-            </div>
-          )}
-        </div>
       </header>
 
       <div style={styles.shopkeeperList}>
         {filteredShopkeepers.map((shopkeeper) => (
           <div key={shopkeeper._id} style={styles.shopkeeperBox}>
             <h3 style={styles.shopkeeperName}>{shopkeeper.shopName}</h3>
-            <p style={styles.shopkeeperDetail}>
-              <strong>Email:</strong> {shopkeeper.email}
-            </p>
-            <p style={styles.shopkeeperDetail}>
-              <strong>Address:</strong> {shopkeeper.address}
-            </p>
+            <p style={styles.shopkeeperDetail}><strong>Email:</strong> {shopkeeper.email}</p>
+            <p style={styles.shopkeeperDetail}><strong>Address:</strong> {shopkeeper.address}</p>
             <button
               style={styles.viewButton}
               onClick={() =>
@@ -114,32 +104,35 @@ const Home = () => {
 
 const styles: { [key: string]: React.CSSProperties } = {
   container: {
-    maxWidth: '800px',
-    margin: '2rem auto',
-    padding: '2rem',
+    maxWidth: '900px',
+    margin: '1rem auto',
+    padding: '1rem',
     textAlign: 'center',
-    border: '1px solid #ddd',
-    borderRadius: '10px',
-    backgroundColor: '#f9f9f9',
-    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
   },
   header: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
+    gap: '1rem',
     marginBottom: '1rem',
-    position: 'relative',
+  },
+  topSection: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
   },
   heading: {
-    fontSize: '2rem',
+    fontSize: '1.8rem',
     color: '#007bff',
+    margin: '0',
   },
   searchBar: {
     padding: '0.5rem',
     fontSize: '1rem',
     border: '1px solid #ccc',
     borderRadius: '5px',
-    width: '50%',
+    marginTop: '0.5rem',
   },
   userSection: {
     position: 'relative',
@@ -159,6 +152,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     borderRadius: '5px',
     boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
     zIndex: 10,
+    width: '150px',
   },
   menuItem: {
     padding: '0.5rem 1rem',
@@ -185,9 +179,9 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginBottom: '0.5rem',
   },
   shopkeeperDetail: {
-    fontSize: '1rem',
+    fontSize: '0.95rem',
     color: '#555',
-    marginBottom: '0.5rem',
+    marginBottom: '0.3rem',
   },
   viewButton: {
     padding: '0.5rem 1rem',

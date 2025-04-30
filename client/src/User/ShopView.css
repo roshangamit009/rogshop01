@@ -147,17 +147,17 @@
 }
 
 .image-container {
+  overflow: hidden; /* Ensures any overflow is hidden */
+  border-radius: 5px; /* Matches the image's border-radius */
   width: 100%;
   height: 150px;
-  overflow: hidden;
-  border-radius: 10px;
-  margin-bottom: 1rem;
 }
 
 .product-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+  width: 100%; /* Ensures the image takes the full width of the container */
+  height: 500px; /* Fixed height for all images */
+  object-fit: cover; /* Ensures the image maintains its aspect ratio and fills the container */
+  border-radius: 5px; /* Optional: Adds rounded corners to the image */
 }
 
 .product-details {

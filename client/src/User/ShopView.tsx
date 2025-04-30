@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import 'bootstrap/dist/css/bootstrap.min.css'; // Import Bootstrap CSS
+ // Import custom CSS for styling
 
 const ShopView = () => {
   const { shopId } = useParams();
@@ -13,9 +15,8 @@ const ShopView = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedQuantities, setSelectedQuantities] = useState<{ [key: string]: number }>({});
+  const [selectedProducts, setSelectedProducts] = useState<{ [key: string]: boolean }>({});
   const [dropdownVisible, setDropdownVisible] = useState(false);
-  const [orders, setOrders] = useState<any[]>([]);
-  const [viewOrders, setViewOrders] = useState(false);
 
   const userEmail = localStorage.getItem('userEmail');
 
@@ -47,24 +48,10 @@ const ShopView = () => {
     fetchCategories();
   }, [shopId, shopName]);
 
-  useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        const response = await axios.get('http://localhost:5000/api/orders', {
-          params: { email: userEmail },
-        });
-        setOrders(response.data);
-      } catch (error) {
-        console.error('Error fetching orders:', error);
-      }
-    };
-    fetchOrders();
-  }, [userEmail]);
-
-  const incrementQuantity = (productId: string, maxQuantity: number) => {
+  const incrementQuantity = (productId: string) => {
     setSelectedQuantities((prev) => ({
       ...prev,
-      [productId]: Math.min((prev[productId] || 1) + 1, maxQuantity),
+      [productId]: (prev[productId] || 1) + 1,
     }));
   };
 
@@ -75,33 +62,53 @@ const ShopView = () => {
     }));
   };
 
-  const addToCart = async (product: any) => {
-    const quantity = selectedQuantities[product._id] || 1;
-    const cartItem = {
-      userEmail,
-      shopId,
-      shopName,
-      product: product.productName,
-      quantity,
-      totalBill: product.price * quantity,
-    };
+  const handleCheckboxChange = (productId: string) => {
+    setSelectedProducts((prev) => ({
+      ...prev,
+      [productId]: !prev[productId],
+    }));
+  };
+
+  const handleMoveToCart = async () => {
+    const selectedProductIds = Object.keys(selectedProducts).filter(
+      (productId) => selectedProducts[productId]
+    );
+
+    if (selectedProductIds.length === 0) {
+      alert('Please select at least one product to move to the cart.');
+      return;
+    }
+
+    const selectedItems = products.filter((product) =>
+      selectedProductIds.includes(product._id)
+    );
 
     try {
-      await axios.post('http://localhost:5000/api/cart', cartItem);
+      for (const product of selectedItems) {
+        const cartItem = {
+          userEmail,
+          shopId,
+          shopName,
+          product: product.productName,
+          quantity: selectedQuantities[product._id] || 1,
+          totalBill: product.price * (selectedQuantities[product._id] || 1),
+        };
+        await axios.post('http://localhost:5000/api/cart', cartItem);
+      }
+      alert('Selected products have been moved to the cart.');
       navigate('/cart');
     } catch (error) {
-      console.error('Error adding to cart:', error);
+      console.error('Error moving products to cart:', error);
+      alert('Failed to move products to the cart.');
     }
   };
 
   const handleDropdownOption = (option: string) => {
     setDropdownVisible(false);
     if (option === 'myOrders') {
-      setViewOrders(true);
+      navigate('/orders');
     } else if (option === 'cart') {
       navigate('/cart');
-    } else if (option === 'myProfile') {
-      navigate('/profile');
     } else if (option === 'logout') {
       localStorage.removeItem('userEmail');
       navigate('/login');
@@ -115,350 +122,150 @@ const ShopView = () => {
   });
 
   return (
-    <div style={styles.container}>
+    <div className="container-fluid">
       {/* Header */}
-      <header style={styles.header}>
-        <h1 style={styles.shopName}>{shopName}</h1>
-        <input
-          type="text"
-          placeholder="Search products..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          style={styles.searchBar}
-        />
-        <div style={styles.userEmailContainer}>
-          <span style={styles.userEmail} onClick={() => setDropdownVisible((prev) => !prev)}>
-            {userEmail}
-          </span>
-          {dropdownVisible && (
-            <div style={styles.dropdown}>
-              <div style={styles.dropdownItem} onClick={() => handleDropdownOption('myOrders')}>
-                🧾 My Orders
+      <header className="bg-primary text-white p-3">
+        <div className="d-flex justify-content-between align-items-center flex-wrap">
+          <h1 className="fs-4 fw-bold mb-2 mb-md-0">{shopName}</h1>
+          <div className="position-relative">
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Search products..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <div className="position-relative">
+            <span
+              className="fw-bold text-white cursor-pointer"
+              onClick={() => setDropdownVisible((prev) => !prev)}
+            >
+              {userEmail}
+            </span>
+            {dropdownVisible && (
+              <div className="dropdown-menu show position-absolute end-0 mt-2">
+                <button
+                  className="dropdown-item"
+                  onClick={() => handleDropdownOption('myOrders')}
+                >
+                  🧾 My Orders
+                </button>
+                <button className="dropdown-item" onClick={() => handleDropdownOption('cart')}>
+                  🛒 Cart
+                </button>
+                <button className="dropdown-item" onClick={() => handleDropdownOption('logout')}>
+                  🚪 Logout
+                </button>
               </div>
-              <div style={styles.dropdownItem} onClick={() => handleDropdownOption('cart')}>
-                🛒 Cart
-              </div>
-              <div style={styles.dropdownItem} onClick={() => handleDropdownOption('myProfile')}>
-                👤 My Profile
-              </div>
-              <div style={styles.dropdownItem} onClick={() => handleDropdownOption('logout')}>
-                🚪 Logout
-              </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </header>
 
-      <div style={styles.main}>
-        {viewOrders ? (
-          <div style={styles.ordersContainer}>
-            <h2 style={styles.heading}>My Orders</h2>
-            {orders.length > 0 ? (
-              <table style={styles.table}>
-                <thead>
-                  <tr>
-                    <th style={styles.th}>Order ID</th>
-                    <th style={styles.th}>Shop Name</th>
-                    <th style={styles.th}>Products</th>
-                    <th style={styles.th}>Total Quantity</th>
-                    <th style={styles.th}>Total Price</th>
-                    <th style={styles.th}>Address</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {orders.map((order) => (
-                    <tr key={order._id}>
-                      <td style={styles.td}>{order._id}</td>
-                      <td style={styles.td}>{order.shopName}</td>
-                      <td style={styles.td}>
-                        {order.products.map((product: any, index: number) => (
-                          <div key={index}>
-                            {product.productName} (x{product.quantity})
-                          </div>
-                        ))}
-                      </td>
-                      <td style={styles.td}>
-                        {order.products.reduce(
-                          (total: number, product: any) => total + product.quantity,
-                          0
-                        )}
-                      </td>
-                      <td style={styles.td}>
-                        ₹
-                        {order.products
-                          .reduce(
-                            (total: number, product: any) =>
-                              total + product.price * product.quantity,
-                            0
-                          )
-                          .toFixed(2)}
-                      </td>
-                      <td style={styles.td}>{order.address}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            ) : (
-              <p style={styles.emptyMessage}>You have no orders yet.</p>
-            )}
+      <div className="row mt-3">
+        {/* Sidebar */}
+        <aside className="col-12 col-md-3 mb-3">
+          <h3 className="fs-5 d-none d-md-block">Categories</h3>
+
+          {/* List Box for Mobile */}
+          <div className="d-md-none">
+            <label htmlFor="categoriesSelect" className="form-label">
+              Select Category
+            </label>
+            <select
+              id="categoriesSelect"
+              className="form-select"
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+            >
+              <option value="">All</option>
+              {categories.map((category, index) => (
+                <option key={index} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
           </div>
-        ) : (
-          <>
-            <aside style={styles.sidebar}>
-              <h3 style={styles.sidebarHeading}>Categories</h3>
-              <ul style={styles.categoryList}>
-                <li
-                  style={{
-                    ...styles.categoryItem,
-                    backgroundColor: selectedCategory === '' ? '#007bff' : '#f8f9fa',
-                    color: selectedCategory === '' ? '#fff' : '#000',
-                  }}
-                  onClick={() => setSelectedCategory('')}
-                >
-                  All
-                </li>
-                {categories.map((category, index) => (
-                  <li
-                    key={index}
-                    style={{
-                      ...styles.categoryItem,
-                      backgroundColor: selectedCategory === category ? '#007bff' : '#f8f9fa',
-                      color: selectedCategory === category ? '#fff' : '#000',
-                    }}
-                    onClick={() => setSelectedCategory(category)}
-                  >
-                    {category}
-                  </li>
-                ))}
-              </ul>
-            </aside>
-            <main style={styles.content}>
-              <div style={styles.productList}>
-                {filteredProducts.map((product) => (
-                  <div key={product._id} style={styles.productCard}>
-                    <div style={styles.imageContainer}>
-                      <img
-                        src={`data:image/jpeg;base64,${product.productImage}`}
-                        alt={product.productName}
-                        style={styles.productImage}
-                      />
-                    </div>
-                    <div style={styles.productDetails}>
-                      <h3 style={styles.productName}>{product.productName}</h3>
-                      <p style={styles.productDetail}>
-                        <strong>Price:</strong> ₹{product.price}
-                      </p>
-                      <p style={styles.productDetail}>
-                        <strong>Stock:</strong> {product.quantity}
-                      </p>
-                      <div style={styles.quantityContainer}>
-                        <button
-                          style={styles.quantityButton}
-                          onClick={() => decrementQuantity(product._id)}
-                        >
-                          -
-                        </button>
-                        <span style={styles.quantityText}>
-                          {selectedQuantities[product._id] || 1}
-                        </span>
-                        <button
-                          style={styles.quantityButton}
-                          onClick={() => incrementQuantity(product._id, product.quantity)}
-                        >
-                          +
-                        </button>
-                      </div>
-                      <button style={styles.addToCartButton} onClick={() => addToCart(product)}>
-                        Add to Cart
+
+          {/* List for Larger Screens */}
+          <ul className="list-group d-none d-md-block">
+            <li
+              className={`list-group-item ${selectedCategory === '' ? 'active' : ''}`}
+              onClick={() => setSelectedCategory('')}
+            >
+              All
+            </li>
+            {categories.map((category, index) => (
+              <li
+                key={index}
+                className={`list-group-item ${selectedCategory === category ? 'active' : ''}`}
+                onClick={() => setSelectedCategory(category)}
+              >
+                {category}
+              </li>
+            ))}
+          </ul>
+        </aside>
+
+        {/* Main Content */}
+        <main className="col-12 col-md-9">
+          <div className="row">
+            {filteredProducts.map((product) => (
+              <div key={product._id} className="col-6 col-sm-3 col-md-4 mb-3">
+                <div className="card">
+                  <div className="image-container">
+                    <img
+                      src={`data:image/jpeg;base64,${product.productImage}`}
+                      className="card-img-top product-image"
+                      alt={product.productName}
+                    />
+                  </div>
+                  <div className="card-body">
+                    <input
+                      type="checkbox"
+                      className="form-check-input me-2"
+                      checked={!!selectedProducts[product._id]}
+                      onChange={() => handleCheckboxChange(product._id)}
+                    />
+                    <h5 className="card-title">{product.productName}</h5>
+                    <p className="card-text">
+                      <strong>Price:</strong> ₹{product.price}
+                    </p>
+                    <p className="card-text">
+                      <strong>Stock:</strong> {product.quantity}
+                    </p>
+                    <div className="d-flex align-items-center">
+                      <button
+                        className="btn btn-sm btn-primary me-2"
+                        onClick={() => decrementQuantity(product._id)}
+                      >
+                        -
+                      </button>
+                      <span className="quantity-box">
+                        {selectedQuantities[product._id] || 1}
+                      </span>
+                      <button
+                        className="btn btn-sm btn-primary ms-2"
+                        onClick={() => incrementQuantity(product._id)}
+                      >
+                        +
                       </button>
                     </div>
                   </div>
-                ))}
+                </div>
               </div>
-            </main>
-          </>
-        )}
+            ))}
+          </div>
+          <button className="btn btn-success mt-3" onClick={handleMoveToCart}>
+            Move Selected to Cart
+          </button>
+        </main>
       </div>
     </div>
   );
 };
 
-const styles: { [key: string]: React.CSSProperties } = {
-  container: {
-    display: 'flex',
-    flexDirection: 'column',
-    height: '100vh',
-  },
-  header: {
-    backgroundColor: '#007bff',
-    color: '#fff',
-    padding: '1rem',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  shopName: {
-    margin: 0,
-    fontSize: '1.5rem',
-    fontWeight: 'bold',
-  },
-  searchBar: {
-    padding: '0.5rem',
-    fontSize: '1rem',
-    border: '1px solid #ccc',
-    borderRadius: '5px',
-    width: '50%',
-  },
-  userEmailContainer: {
-    position: 'relative',
-  },
-  userEmail: {
-    fontSize: '1rem',
-    fontWeight: 'bold',
-    color: '#fff',
-    cursor: 'pointer',
-  },
-  dropdown: {
-    position: 'absolute',
-    top: '100%',
-    right: 0,
-    backgroundColor: '#fff',
-    border: '1px solid #ddd',
-    borderRadius: '5px',
-    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-    zIndex: 1000,
-    width: '200px',
-    overflow: 'hidden',
-  },
-  dropdownItem: {
-    padding: '0.75rem 1rem',
-    cursor: 'pointer',
-    borderBottom: '1px solid #ddd',
-    textAlign: 'left',
-    fontSize: '1rem',
-    color: '#333',
-  },
-  main: {
-    display: 'flex',
-    flex: 1,
-  },
-  sidebar: {
-    width: '250px',
-    backgroundColor: '#f8f9fa',
-    padding: '1rem',
-    borderRight: '1px solid #ddd',
-  },
-  sidebarHeading: {
-    fontSize: '1.2rem',
-    marginBottom: '1rem',
-  },
-  categoryList: {
-    listStyle: 'none',
-    padding: 0,
-  },
-  categoryItem: {
-    padding: '0.5rem',
-    marginBottom: '0.5rem',
-    borderRadius: '5px',
-    cursor: 'pointer',
-  },
-  content: {
-    flex: 1,
-    padding: '2rem',
-    backgroundColor: '#fff',
-  },
-  productList: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-    gap: '1rem',
-  },
-  productCard: {
-    padding: '1rem',
-    border: '1px solid #ddd',
-    borderRadius: '10px',
-    backgroundColor: '#fff',
-    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-    textAlign: 'center',
-  },
-  imageContainer: {
-    width: '100%',
-    height: '150px',
-    overflow: 'hidden',
-    borderRadius: '10px',
-    marginBottom: '1rem',
-  },
-  productImage: {
-    width: '100%',
-    height: '100%',
-    objectFit: 'cover',
-  },
-  productDetails: {
-    textAlign: 'left',
-  },
-  productName: {
-    fontSize: '1.2rem',
-    color: '#007bff',
-    marginBottom: '0.5rem',
-  },
-  productDetail: {
-    fontSize: '1rem',
-    color: '#555',
-    marginBottom: '0.5rem',
-  },
-  quantityContainer: {
-    display: 'flex',
-    alignItems: 'center',
-    marginBottom: '0.5rem',
-  },
-  quantityButton: {
-    padding: '0.25rem 0.5rem',
-    backgroundColor: '#007bff',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '5px',
-    cursor: 'pointer',
-  },
-  quantityText: {
-    margin: '0 0.5rem',
-    fontSize: '1rem',
-    fontWeight: 'bold',
-  },
-  addToCartButton: {
-    padding: '0.5rem 1rem',
-    backgroundColor: '#28a745',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '5px',
-    cursor: 'pointer',
-  },
-  ordersContainer: {
-    padding: '2rem',
-    backgroundColor: '#fff',
-    flex: 1,
-  },
-  heading: {
-    fontSize: '1.5rem',
-    marginBottom: '1rem',
-  },
-  table: {
-    width: '100%',
-    borderCollapse: 'collapse',
-  },
-  th: {
-    border: '1px solid #ddd',
-    padding: '0.5rem',
-    textAlign: 'left',
-    backgroundColor: '#f8f9fa',
-  },
-  td: {
-    border: '1px solid #ddd',
-    padding: '0.5rem',
-    textAlign: 'left',
-  },
-  emptyMessage: {
-    fontSize: '1rem',
-    color: '#555',
-  },
-};
-
 export default ShopView;
+
+

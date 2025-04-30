@@ -2,43 +2,35 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 
 const ShopkeeperAddProduct = () => {
-  const [formData, setFormData] = useState<{
-    productImage: File | null; // Allow productImage to be File or null
-    productName: string;
-    price: string;
-    quantity: string;
-    category: string;
-  }>({
-    productImage: null,
+  const [formData, setFormData] = useState({
+    productImage: null as File | null,
     productName: '',
     price: '',
     quantity: '',
     category: '',
   });
 
-  const [categories, setCategories] = useState<string[]>([]); // Categories for the shop
-  const [newCategory, setNewCategory] = useState(''); // New category input
-  const [isOtherCategory, setIsOtherCategory] = useState(false); // Track if "Other" is selected
+  const [categories, setCategories] = useState<string[]>([]);
+  const [newCategory, setNewCategory] = useState('');
+  const [selectedCategoryToDelete, setSelectedCategoryToDelete] = useState('');
+  const [isOtherCategory, setIsOtherCategory] = useState(false);
   const [message, setMessage] = useState('');
-  const [categoryMessage, setCategoryMessage] = useState(''); // Message for category addition
+  const [categoryMessage, setCategoryMessage] = useState('');
 
-  // Get shopkeeper details from localStorage
   const shopName = localStorage.getItem('shopkeeperName') || 'Unknown Shop';
-  const shopkeeperId = localStorage.getItem('shopkeeperId'); // Assuming shopkeeperId is stored in localStorage during login
+  const shopkeeperId = localStorage.getItem('shopkeeperId');
 
   useEffect(() => {
-    // Fetch existing categories for the shop
     const fetchCategories = async () => {
       try {
         const response = await axios.get(
-          `https://rogshop.onrender.com/api/products-categories?shopkeeperId=${shopkeeperId}&shopName=${shopName}`
+          `http://localhost:5000/api/products-categories?shopkeeperId=${shopkeeperId}&shopName=${shopName}`
         );
         setCategories(response.data.categories || []);
       } catch (error) {
         console.error('Error fetching categories:', error);
       }
     };
-
     fetchCategories();
   }, [shopkeeperId, shopName]);
 
@@ -57,7 +49,7 @@ const ShopkeeperAddProduct = () => {
     const selectedCategory = e.target.value;
     if (selectedCategory === 'Other') {
       setIsOtherCategory(true);
-      setFormData({ ...formData, category: '' }); // Clear the category field
+      setFormData({ ...formData, category: '' });
     } else {
       setIsOtherCategory(false);
       setFormData({ ...formData, category: selectedCategory });
@@ -66,29 +58,24 @@ const ShopkeeperAddProduct = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.productImage) {
-      setMessage('Please upload a product image.');
-      return;
-    }
-
     const formDataToSend = new FormData();
-    formDataToSend.append('shopkeeperId', shopkeeperId || ''); // Include shopkeeperId
+    formDataToSend.append('shopkeeperId', shopkeeperId || '');
     formDataToSend.append('shopName', shopName);
-    formDataToSend.append('productImage', formData.productImage); // No need to cast
+    formDataToSend.append('productImage', formData.productImage as Blob);
     formDataToSend.append('productName', formData.productName);
     formDataToSend.append('price', formData.price);
     formDataToSend.append('quantity', formData.quantity);
-    formDataToSend.append('category', formData.category); // Include category
+    formDataToSend.append('category', formData.category);
 
     try {
-      const response = await axios.post('https://rogshop.onrender.com/api/products', formDataToSend, {
+      const response = await axios.post('http://localhost:5000/api/products', formDataToSend, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
-      setMessage(response.data.message); // Display success message
-      setFormData({ productImage: null, productName: '', price: '', quantity: '', category: '' }); // Reset form
-      setIsOtherCategory(false); // Reset "Other" category state
+      setMessage(response.data.message);
+      setFormData({ productImage: null, productName: '', price: '', quantity: '', category: '' });
+      setIsOtherCategory(false);
     } catch (error: any) {
       setMessage(error.response?.data?.message || 'An error occurred');
     }
@@ -106,169 +93,138 @@ const ShopkeeperAddProduct = () => {
         shopName,
         categories: [newCategory.trim()],
       };
-
-      const response = await axios.post('https://rogshop.onrender.com/api/products-categories', payload);
-      setCategories(response.data.shopCategories.categories); // Update categories
+      const response = await axios.post('http://localhost:5000/api/products-categories', payload);
+      setCategories(response.data.shopCategories.categories);
       setCategoryMessage('Category added successfully');
-      setNewCategory(''); // Clear the input
+      setNewCategory('');
     } catch (error: any) {
-      console.error('Error adding category:', error.response?.data || error.message);
       setCategoryMessage(error.response?.data?.message || 'An error occurred while adding category');
     }
   };
 
+  const handleDeleteCategory = async () => {
+    if (!selectedCategoryToDelete) {
+      setCategoryMessage('Please select a category to delete');
+      return;
+    }
+
+    const confirmDelete = window.confirm(`Are you sure you want to delete the category "${selectedCategoryToDelete}"?`);
+    if (!confirmDelete) return;
+
+    try {
+      const payload = {
+        shopkeeperId,
+        shopName,
+        category: selectedCategoryToDelete,
+      };
+      await axios.delete('http://localhost:5000/api/delete-category', { data: payload });
+      setCategories(categories.filter((category) => category !== selectedCategoryToDelete));
+      setCategoryMessage('Category deleted successfully');
+      setSelectedCategoryToDelete('');
+    } catch (error: any) {
+      setCategoryMessage(error.response?.data?.message || 'An error occurred while deleting category');
+    }
+  };
+
   return (
-    <div style={styles.container}>
-      <h2 style={{ ...styles.heading, textAlign: 'center' as 'center' }}>Add Product</h2>
+    <div className="container">
+      <style>{`
+        .container {
+          max-width: 400px;
+          margin: 2rem auto;
+          padding: 2rem;
+          border: 1px solid #ddd;
+          border-radius: 10px;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .heading {
+          text-align: center;
+          margin-bottom: 1rem;
+        }
+        .sub-heading {
+          margin-top: 2rem;
+          margin-bottom: 1rem;
+          font-size: 1.2rem;
+          font-weight: bold;
+        }
+        .input {
+          width: 100%;
+          padding: 0.6rem;
+          margin-bottom: 1rem;
+          border-radius: 6px;
+          border: 1px solid #ccc;
+        }
+        .button,
+        .add-category-button,
+        .delete-category-button {
+          width: 100%;
+          padding: 0.75rem;
+          color: #fff;
+          border: none;
+          border-radius: 6px;
+          cursor: pointer;
+          margin-top: 0.5rem;
+        }
+        .button {
+          background-color: #007bff;
+        }
+        .add-category-button {
+          background-color: #28a745;
+        }
+        .delete-category-button {
+          background-color: #dc3545;
+        }
+        .message {
+          text-align: center;
+          margin-top: 1rem;
+        }
+        .success {
+          color: green;
+        }
+        .error {
+          color: red;
+        }
+      `}</style>
+
+      <h2 className="heading">Add Product</h2>
       <form onSubmit={handleSubmit}>
-        <input
-          type="file"
-          name="productImage"
-          accept="image/*"
-          onChange={handleFileChange}
-          required
-          style={styles.input}
-        />
-        <input
-          type="text"
-          name="productName"
-          placeholder="Product Name"
-          value={formData.productName}
-          onChange={handleInputChange}
-          required
-          style={styles.input}
-        />
-        <input
-          type="number"
-          name="price"
-          placeholder="Price"
-          value={formData.price}
-          onChange={handleInputChange}
-          required
-          style={styles.input}
-        />
-        <input
-          type="number"
-          name="quantity"
-          placeholder="Quantity"
-          value={formData.quantity}
-          onChange={handleInputChange}
-          required
-          style={styles.input}
-        />
-        <select
-          name="category"
-          value={formData.category}
-          onChange={handleCategoryChange}
-          required
-          style={styles.input}
-        >
+        <input type="file" name="productImage" accept="image/*" onChange={handleFileChange} required className="input" />
+        <input type="text" name="productName" placeholder="Product Name" value={formData.productName} onChange={handleInputChange} required className="input" />
+        <input type="number" name="price" placeholder="Price" value={formData.price} onChange={handleInputChange} required className="input" />
+        <input type="number" name="quantity" placeholder="Quantity" value={formData.quantity} onChange={handleInputChange} required className="input" />
+
+        <select name="category" value={formData.category} onChange={handleCategoryChange} required className="input">
           <option value="">Select Category</option>
           {categories.map((category, index) => (
-            <option key={index} value={category}>
-              {category}
-            </option>
+            <option key={index} value={category}>{category}</option>
           ))}
           <option value="Other">Other</option>
         </select>
+
         {isOtherCategory && (
-          <input
-            type="text"
-            name="category"
-            placeholder="Enter New Category"
-            value={formData.category}
-            onChange={handleInputChange}
-            required
-            style={styles.input}
-          />
+          <input type="text" name="category" placeholder="Enter New Category" value={formData.category} onChange={handleInputChange} required className="input" />
         )}
-        <button type="submit" style={styles.button}>
-          Add Product
-        </button>
+
+        <button type="submit" className="button">Add Product</button>
       </form>
 
-      <h3 style={styles.subHeading}>Add New Category</h3>
-      <input
-        type="text"
-        placeholder="New Category"
-        value={newCategory}
-        onChange={(e) => setNewCategory(e.target.value)}
-        style={styles.input}
-      />
-      <button type="button" onClick={handleAddCategory} style={styles.addCategoryButton}>
-        Add Category
-      </button>
+      <h3 className="sub-heading">Add New Category</h3>
+      <input type="text" placeholder="New Category" value={newCategory} onChange={(e) => setNewCategory(e.target.value)} className="input" />
+      <button type="button" onClick={handleAddCategory} className="add-category-button">Add Category</button>
 
-      {message && (
-        <p style={{ ...styles.message, color: message.includes('success') ? 'green' : 'red', textAlign: 'center' as 'center' }}>
-          {message}
-        </p>
-      )}
-      {categoryMessage && (
-        <p
-          style={{
-            ...styles.message,
-            color: categoryMessage.includes('success') ? 'green' : 'red',
-            textAlign: 'center' as 'center',
-          }}
-        >
-          {categoryMessage}
-        </p>
-      )}
+      <h3 className="sub-heading">Delete Category</h3>
+      <select value={selectedCategoryToDelete} onChange={(e) => setSelectedCategoryToDelete(e.target.value)} className="input">
+        <option value="">Select Category to Delete</option>
+        {categories.map((category, index) => (
+          <option key={index} value={category}>{category}</option>
+        ))}
+      </select>
+      <button type="button" onClick={handleDeleteCategory} className="delete-category-button">Delete Category</button>
+
+      {message && <p className={`message ${message.includes('success') ? 'success' : 'error'}`}>{message}</p>}
+      {categoryMessage && <p className={`message ${categoryMessage.includes('success') ? 'success' : 'error'}`}>{categoryMessage}</p>}
     </div>
   );
-};
-
-const styles = {
-  container: {
-    maxWidth: '400px',
-    margin: '2rem auto',
-    padding: '2rem',
-    border: '1px solid #ddd',
-    borderRadius: '10px',
-    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-  },
-  heading: {
-    textAlign: 'center' as 'center', // Explicitly cast textAlign
-    marginBottom: '1rem',
-  },
-  subHeading: {
-    marginTop: '2rem',
-    marginBottom: '1rem',
-    fontSize: '1.2rem',
-    fontWeight: 'bold',
-  },
-  input: {
-    width: '100%',
-    padding: '0.6rem',
-    marginBottom: '1rem',
-    borderRadius: '6px',
-    border: '1px solid #ccc',
-  },
-  button: {
-    width: '100%',
-    padding: '0.75rem',
-    backgroundColor: '#007bff',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    marginTop: '1rem',
-  },
-  addCategoryButton: {
-    width: '100%',
-    padding: '0.75rem',
-    backgroundColor: '#28a745',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    marginBottom: '1rem',
-  },
-  message: {
-    textAlign: 'center' as 'center', // Explicitly cast textAlign
-    marginTop: '1rem',
-  },
 };
 
 export default ShopkeeperAddProduct;

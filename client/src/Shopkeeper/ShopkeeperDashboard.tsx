@@ -57,7 +57,7 @@ const ShopkeeperDashboard = () => {
             />
             <h3 style={styles.productName}>{product.productName}</h3>
             <p style={styles.productDetail}>
-              <strong>Price:</strong> ${product.price}
+              <strong>Price:</strong> ₹{product.price}
             </p>
             <p style={styles.productDetail}>
               <strong>Quantity:</strong> {product.quantity}

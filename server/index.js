@@ -12,6 +12,7 @@ const ShopkeeperProducts = require('./models/ShopkeeperProducts'); // Import the
 const ProductsCategories = require('./models/ProductsCategories'); // Import the ProductsCategories model
 const Cart = require('./models/Cart'); // Import the Cart model
 const Order = require('./models/Order'); // Import the Order model
+const { v4: uuidv4 } = require('uuid'); // Import uuid
 
 // Define Category model
 const Category = mongoose.model('Category', new mongoose.Schema({
@@ -281,10 +282,15 @@ app.post('/api/auth/register', async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new User({ username, email, password: hashedPassword });
-    await newUser.save();
+    const newUser = new User({
+      userId: uuidv4(), // Generate a unique userId
+      username,
+      email,
+      password: hashedPassword,
+    });
 
-    res.status(201).json({ message: 'User registered successfully' });
+    await newUser.save();
+    res.status(201).json({ message: 'User registered successfully', userId: newUser.userId });
   } catch (error) {
     console.error('Error registering user:', error);
     res.status(500).json({ message: 'Error registering user', error: error.message });
@@ -507,25 +513,6 @@ app.post('/api/orders', async (req, res) => {
 
     await newOrder.save();
 
-    // Update stock in ShopkeeperProducts table
-    for (const product of products) {
-      const dbProduct = await ShopkeeperProducts.findOne({
-        shopkeeperId: shopId,
-        productName: product.productName,
-      });
-
-      if (!dbProduct) {
-        return res.status(404).json({ message: `Product "${product.productName}" not found` });
-      }
-
-      if (dbProduct.quantity < product.quantity) {
-        return res.status(400).json({ message: `Insufficient stock for "${product.productName}"` });
-      }
-
-      dbProduct.quantity -= product.quantity; // Reduce stock
-      await dbProduct.save();
-    }
-
     // Delete items from the cart for the user
     await Cart.deleteMany({ userEmail: email });
 
@@ -545,24 +532,7 @@ app.get('/api/orders', async (req, res) => {
   }
 
   try {
-    const orders = await Order.find({ email });
-    res.status(200).json(orders);
-  } catch (error) {
-    console.error('Error fetching orders:', error);
-    res.status(500).json({ message: 'Error fetching orders', error: error.message });
-  }
-});
-
-// Get orders for a specific shop by shopName
-app.get('/api/orders', async (req, res) => {
-  const { shopName } = req.query;
-
-  if (!shopName) {
-    return res.status(400).json({ message: 'Shop name is required' });
-  }
-
-  try {
-    const orders = await Order.find({ shopName });
+    const orders = await Order.find({ email }); // Fetch orders by user email
     res.status(200).json(orders);
   } catch (error) {
     console.error('Error fetching orders:', error);
@@ -616,6 +586,26 @@ app.put('/api/orders/:id', async (req, res) => {
   } catch (error) {
     console.error('Error updating order status:', error);
     res.status(500).json({ message: 'Error updating order status', error: error.message });
+  }
+});
+
+app.delete('/api/delete-category', async (req, res) => {
+  const { shopkeeperId, shopName, category } = req.body;
+
+  if (!shopkeeperId || !shopName || !category) {
+    return res.status(400).json({ message: 'All fields are required' });
+  }
+
+  try {
+    const shopCategories = await ProductsCategories.findOneAndUpdate(
+      { shopkeeperId, shopName },
+      { $pull: { categories: category } },
+      { new: true }
+    );
+    res.status(200).json({ message: 'Category deleted successfully', shopCategories });
+  } catch (error) {
+    console.error('Error deleting category:', error);
+    res.status(500).json({ message: 'Error deleting category' });
   }
 });
 

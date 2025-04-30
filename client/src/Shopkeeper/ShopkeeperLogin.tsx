@@ -18,10 +18,9 @@ const ShopkeeperLogin = () => {
       const response = await axios.post('http://localhost:5000/api/auth/shopkeeper-login', formData);
 
       if (response.data.success) {
-        // Store shopkeeper details in localStorage
         localStorage.setItem('shopkeeperId', response.data.shopkeeperId);
         localStorage.setItem('shopkeeperName', response.data.shopName);
-        localStorage.setItem('shopkeeperEmail', formData.email); // Store shopkeeper email
+        localStorage.setItem('shopkeeperEmail', formData.email);
         navigate('/shopkeeperhome');
       }
     } catch (error: any) {
@@ -30,8 +29,53 @@ const ShopkeeperLogin = () => {
   };
 
   return (
-    <div style={styles.container}>
-      <h2 style={{ ...styles.heading, textAlign: 'center' as 'center' }}>Shopkeeper Login</h2>
+    <div className="container">
+      <style>{`
+        .container {
+          max-width: 400px;
+          margin: 2rem auto;
+          padding: 2rem;
+          border: 1px solid #ddd;
+          border-radius: 10px;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .heading {
+          text-align: center;
+          margin-bottom: 1rem;
+        }
+        .input {
+          width: 100%;
+          padding: 0.6rem;
+          margin-bottom: 1rem;
+          border-radius: 6px;
+          border: 1px solid #ccc;
+        }
+        .button {
+          width: 100%;
+          padding: 0.75rem;
+          background-color: #007bff;
+          color: #fff;
+          border: none;
+          border-radius: 6px;
+          cursor: pointer;
+        }
+        .message {
+          text-align: center;
+          margin-top: 1rem;
+          color: red;
+        }
+        .linkText {
+          text-align: center;
+          margin-top: 1rem;
+        }
+        .link {
+          color: #007bff;
+          text-decoration: none;
+          font-weight: bold;
+        }
+      `}</style>
+
+      <h2 className="heading">Shopkeeper Login</h2>
       <form onSubmit={handleSubmit}>
         <input
           type="email"
@@ -40,7 +84,7 @@ const ShopkeeperLogin = () => {
           value={formData.email}
           onChange={handleInputChange}
           required
-          style={styles.input}
+          className="input"
         />
         <input
           type="password"
@@ -49,69 +93,19 @@ const ShopkeeperLogin = () => {
           value={formData.password}
           onChange={handleInputChange}
           required
-          style={styles.input}
+          className="input"
         />
-        <button type="submit" style={styles.button}>
-          Login
-        </button>
+        <button type="submit" className="button">Login</button>
       </form>
-      {message && (
-        <p style={{ ...styles.message, color: 'red', textAlign: 'center' as 'center' }}>
-          {message}
-        </p>
-      )}
-      <p style={{ ...styles.linkText, textAlign: 'center' as 'center' }}>
+      {message && <p className="message">{message}</p>}
+      <p className="linkText">
         Are you a user?{' '}
-        <Link to="/login" style={styles.link}>
+        <Link to="/login" className="link">
           Login here
         </Link>
       </p>
     </div>
   );
-};
-
-const styles = {
-  container: {
-    maxWidth: '400px',
-    margin: '2rem auto',
-    padding: '2rem',
-    border: '1px solid #ddd',
-    borderRadius: '10px',
-    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-  },
-  heading: {
-    textAlign: 'center' as 'center', // Explicitly cast textAlign
-    marginBottom: '1rem',
-  },
-  input: {
-    width: '100%',
-    padding: '0.6rem',
-    marginBottom: '1rem',
-    borderRadius: '6px',
-    border: '1px solid #ccc',
-  },
-  button: {
-    width: '100%',
-    padding: '0.75rem',
-    backgroundColor: '#007bff',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '6px',
-    cursor: 'pointer',
-  },
-  message: {
-    textAlign: 'center' as 'center', // Explicitly cast textAlign
-    marginTop: '1rem',
-  },
-  linkText: {
-    textAlign: 'center' as 'center', // Explicitly cast textAlign
-    marginTop: '1rem',
-  },
-  link: {
-    color: '#007bff',
-    textDecoration: 'none',
-    fontWeight: 'bold',
-  },
 };
 
 export default ShopkeeperLogin;

@@ -16,16 +16,60 @@ const Register = () => {
     e.preventDefault();
     try {
       const response = await axios.post('http://localhost:5000/api/auth/register', formData);
-      setMessage(response.data.message); // Display success message
-      setTimeout(() => navigate('/login'), 2000); // Redirect to Login page after 2 seconds
+      setMessage(response.data.message);
+      setTimeout(() => navigate('/login'), 2000);
     } catch (error: any) {
       setMessage(error.response?.data?.message || 'An error occurred');
     }
   };
 
   return (
-    <div style={styles.container}>
-      <h2 style={{ ...styles.heading, textAlign: 'center' as 'center' }}>Register</h2>
+    <div className="container">
+      <style>{`
+        .container {
+          max-width: 400px;
+          margin: 2rem auto;
+          padding: 2rem;
+          border: 1px solid #ddd;
+          border-radius: 10px;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .heading {
+          text-align: center;
+          margin-bottom: 1rem;
+        }
+        .input {
+          width: 100%;
+          padding: 0.6rem;
+          margin-bottom: 1rem;
+          border-radius: 6px;
+          border: 1px solid #ccc;
+        }
+        .button {
+          width: 100%;
+          padding: 0.75rem;
+          background-color: #007bff;
+          color: #fff;
+          border: none;
+          border-radius: 6px;
+          cursor: pointer;
+        }
+        .message {
+          text-align: center;
+          margin-top: 1rem;
+        }
+        .linkText {
+          text-align: center;
+          margin-top: 1rem;
+        }
+        .link {
+          color: #007bff;
+          text-decoration: none;
+          font-weight: bold;
+        }
+      `}</style>
+
+      <h2 className="heading">Register</h2>
       <form onSubmit={handleSubmit}>
         <input
           type="text"
@@ -34,7 +78,7 @@ const Register = () => {
           value={formData.username}
           onChange={handleInputChange}
           required
-          style={styles.input}
+          className="input"
         />
         <input
           type="email"
@@ -43,7 +87,7 @@ const Register = () => {
           value={formData.email}
           onChange={handleInputChange}
           required
-          style={styles.input}
+          className="input"
         />
         <input
           type="password"
@@ -52,75 +96,23 @@ const Register = () => {
           value={formData.password}
           onChange={handleInputChange}
           required
-          style={styles.input}
+          className="input"
         />
-        <button type="submit" style={styles.button}>
-          Register
-        </button>
+        <button type="submit" className="button">Register</button>
       </form>
       {message && (
-        <p
-          style={{
-            ...styles.message,
-            color: message.includes('success') ? 'green' : 'red',
-            textAlign: 'center' as 'center', // Explicitly cast textAlign
-          }}
-        >
+        <p className="message" style={{ color: message.toLowerCase().includes('success') ? 'green' : 'red' }}>
           {message}
         </p>
       )}
-      <p style={{ ...styles.linkText, textAlign: 'center' as 'center' }}>
+      <p className="linkText">
         Already have an account?{' '}
-        <Link to="/login" style={styles.link}>
+        <Link to="/login" className="link">
           Login here
         </Link>
       </p>
     </div>
   );
-};
-
-const styles = {
-  container: {
-    maxWidth: '400px',
-    margin: '2rem auto',
-    padding: '2rem',
-    border: '1px solid #ddd',
-    borderRadius: '10px',
-    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-  },
-  heading: {
-    textAlign: 'center' as 'center', // Explicitly cast textAlign
-    marginBottom: '1rem',
-  },
-  input: {
-    width: '100%',
-    padding: '0.6rem',
-    marginBottom: '1rem',
-    borderRadius: '6px',
-    border: '1px solid #ccc',
-  },
-  button: {
-    width: '100%',
-    padding: '0.75rem',
-    backgroundColor: '#007bff',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '6px',
-    cursor: 'pointer',
-  },
-  message: {
-    textAlign: 'center' as 'center', // Explicitly cast textAlign
-    marginTop: '1rem',
-  },
-  linkText: {
-    textAlign: 'center' as 'center', // Explicitly cast textAlign
-    marginTop: '1rem',
-  },
-  link: {
-    color: '#007bff',
-    textDecoration: 'none',
-    fontWeight: 'bold',
-  },
 };
 
 export default Register;

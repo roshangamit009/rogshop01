@@ -38,7 +38,7 @@ const ShopkeeperHome = () => {
   };
 
   return (
-    <div style={{ ...styles.container, flexDirection: 'column' as 'column' }}>
+    <div style={styles.container}>
       {/* Header */}
       <header style={styles.header}>
         <h1 style={styles.headerTitle}>{shopkeeperName}'s Dashboard</h1>
@@ -46,53 +46,23 @@ const ShopkeeperHome = () => {
       </header>
 
       <div style={styles.main}>
-        {/* Sidebar */}
-        <aside style={styles.sidebar}>
-          <button
-            onClick={() => setActiveTab('dashboard')}
-            style={{
-              ...styles.sidebarButton,
-              backgroundColor: activeTab === 'dashboard' ? '#007bff' : '#f8f9fa',
-              color: activeTab === 'dashboard' ? '#fff' : '#000',
-              textAlign: 'left' as 'left', // Explicitly cast textAlign
-            }}
+        {/* List Box for Navigation */}
+        <div style={styles.listBoxContainer}>
+          <label htmlFor="navigationSelect" style={styles.listBoxLabel}>
+            Navigate:
+          </label>
+          <select
+            id="navigationSelect"
+            value={activeTab}
+            onChange={(e) => setActiveTab(e.target.value)}
+            style={styles.listBox}
           >
-            Dashboard
-          </button>
-          <button
-            onClick={() => setActiveTab('add-product')}
-            style={{
-              ...styles.sidebarButton,
-              backgroundColor: activeTab === 'add-product' ? '#007bff' : '#f8f9fa',
-              color: activeTab === 'add-product' ? '#fff' : '#000',
-              textAlign: 'left' as 'left', // Explicitly cast textAlign
-            }}
-          >
-            Add Product
-          </button>
-          <button
-            onClick={() => setActiveTab('orders')}
-            style={{
-              ...styles.sidebarButton,
-              backgroundColor: activeTab === 'orders' ? '#007bff' : '#f8f9fa',
-              color: activeTab === 'orders' ? '#fff' : '#000',
-              textAlign: 'left' as 'left', // Explicitly cast textAlign
-            }}
-          >
-            Orders
-          </button>
-          <button
-            onClick={() => setActiveTab('manage-products')}
-            style={{
-              ...styles.sidebarButton,
-              backgroundColor: activeTab === 'manage-products' ? '#007bff' : '#f8f9fa',
-              color: activeTab === 'manage-products' ? '#fff' : '#000',
-              textAlign: 'left' as 'left', // Explicitly cast textAlign
-            }}
-          >
-            Manage Products
-          </button>
-        </aside>
+            <option value="dashboard">Dashboard</option>
+            <option value="add-product">Add Product</option>
+            <option value="orders">Orders</option>
+            <option value="manage-products">Manage Products</option>
+          </select>
+        </div>
 
         {/* Main Content */}
         <main style={styles.content}>{renderContent()}</main>
@@ -104,7 +74,7 @@ const ShopkeeperHome = () => {
 const styles = {
   container: {
     display: 'flex',
-    flexDirection: 'column' as 'column', // Explicitly cast flexDirection
+    flexDirection: 'column' as 'column',
     height: '100vh',
   },
   header: {
@@ -127,23 +97,25 @@ const styles = {
   main: {
     display: 'flex',
     flex: 1,
+    flexDirection: 'column' as 'column', // Adjusted for list box
   },
-  sidebar: {
-    width: '250px',
-    backgroundColor: '#f8f9fa',
+  listBoxContainer: {
     padding: '1rem',
-    borderRight: '1px solid #ddd',
+    backgroundColor: '#f8f9fa',
+    borderBottom: '1px solid #ddd',
   },
-  sidebarButton: {
+  listBoxLabel: {
     display: 'block',
-    width: '100%',
-    padding: '0.75rem',
     marginBottom: '0.5rem',
-    textAlign: 'left' as 'left', // Explicitly cast textAlign
-    border: 'none',
-    borderRadius: '5px',
-    cursor: 'pointer',
+    fontWeight: 'bold',
     fontSize: '1rem',
+  },
+  listBox: {
+    width: '100%',
+    padding: '0.5rem',
+    fontSize: '1rem',
+    borderRadius: '5px',
+    border: '1px solid #ccc',
   },
   content: {
     flex: 1,

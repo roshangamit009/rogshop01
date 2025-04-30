@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './Css/Cart.css';
 
@@ -35,6 +36,7 @@ const Cart = () => {
   });
 
   const userEmail = localStorage.getItem('userEmail') || ''; // Get user email from localStorage
+  const navigate = useNavigate(); // React Router's navigate function
 
   // Fetch cart items for the logged-in user
   useEffect(() => {
@@ -122,6 +124,11 @@ const Cart = () => {
 
   // Handle item removal
   const handleRemoveItem = async (itemId: string) => {
+    const isConfirmed = window.confirm('Are you sure you want to remove this product from the cart?');
+    if (!isConfirmed) {
+      return; // Exit if the user cancels
+    }
+
     try {
       await axios.delete(`http://localhost:5000/api/cart/${itemId}`);
       setCartItems((prev) => prev.filter((item) => item._id !== itemId));
@@ -178,6 +185,17 @@ const Cart = () => {
 
   return (
     <div className="cart-container">
+      {/* Header */}
+      <header className="bg-primary text-white p-3 d-flex justify-content-between align-items-center">
+        <button
+          className="btn btn-light"
+          onClick={() => navigate(-1)} // Navigate back to the previous page
+        >
+          Back
+        </button>
+        <span className="fw-bold">{userEmail}</span>
+      </header>
+
       <h2 className="cart-heading">My Cart</h2>
       {mergedCartItems.length > 0 ? (
         <>
@@ -217,7 +235,7 @@ const Cart = () => {
                     )}
                   </td>
                   <td>{item.stock}</td>
-                  <td>${item.totalBill.toFixed(2)}</td>
+                  <td>₹{item.totalBill.toFixed(2)}</td>
                   <td>
                     <button
                       className="remove-button"
@@ -232,7 +250,7 @@ const Cart = () => {
           </table>
 
           <div className="cart-summary">
-            <p className="cart-summary-text">
+            <p>
               <strong>Total Quantity:</strong> {totalQuantity}
             </p>
           </div>

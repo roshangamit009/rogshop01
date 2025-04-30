@@ -30,7 +30,7 @@ const AdminDashboard = () => {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await axios.get<Order[]>('http://localhost:5000/api/admin/orders'); // Backend endpoint for fetching all orders
+        const response = await axios.get<Order[]>('https://rogshop.onrender.com/api/admin/orders'); // Backend endpoint for fetching all orders
         setOrders(response.data);
         setFilteredOrders(response.data); // Initialize filtered orders
       } catch (error) {

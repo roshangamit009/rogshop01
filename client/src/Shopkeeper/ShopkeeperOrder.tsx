@@ -10,7 +10,7 @@ interface Product {
 interface Order {
   _id: string;
   email: string;
-  mobileNo: string; // Add mobile number
+  mobileNo: string;
   address: string;
   products: Product[];
   createdAt: string;
@@ -19,18 +19,16 @@ interface Order {
 
 const ShopkeeperOrder = () => {
   const [orders, setOrders] = useState<Order[]>([]);
+  const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
+  const [message, setMessage] = useState('');
   const shopName = localStorage.getItem('shopkeeperName') || '';
   const email = localStorage.getItem('shopkeeperEmail') || '';
-  const [message, setMessage] = useState('');
 
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await axios.get('https://rogshop.onrender.com/api/orders', {
-          params: {
-            shopName: shopName || undefined,
-            email: email || undefined,
-          },
+        const response = await axios.get('http://localhost:5000/api/orders', {
+          params: { shopName, email },
         });
         setOrders(response.data);
       } catch (error) {
@@ -42,19 +40,20 @@ const ShopkeeperOrder = () => {
     fetchOrders();
   }, [shopName, email]);
 
+  const toggleExpand = (orderId: string) => {
+    setExpandedOrderId(prev => (prev === orderId ? null : orderId));
+  };
+
   const handleStatusChange = async (orderId: string) => {
     try {
-      await axios.put(`https://rogshop.onrender.com/api/orders/${orderId}`, {
-        received: 'Complete', // Update the status to "Complete"
+      await axios.put(`http://localhost:5000/api/orders/${orderId}`, {
+        received: 'Complete',
       });
-
-      // Update the order status in the frontend
-      setOrders((prevOrders) =>
-        prevOrders.map((order) =>
+      setOrders(prev =>
+        prev.map(order =>
           order._id === orderId ? { ...order, received: 'Complete' } : order
         )
       );
-
       setMessage('Order status updated successfully');
     } catch (error) {
       console.error('Error updating order status:', error);
@@ -62,67 +61,77 @@ const ShopkeeperOrder = () => {
     }
   };
 
+  const handleDelete = async (orderId: string) => {
+    if (window.confirm('Are you sure you want to delete this order?')) {
+      try {
+        await axios.delete(`http://localhost:5000/api/orders/${orderId}`);
+        setOrders(prev => prev.filter(order => order._id !== orderId));
+        setMessage('Order deleted successfully');
+      } catch (error) {
+        console.error('Error deleting order:', error);
+        setMessage('Error deleting order');
+      }
+    }
+  };
+
   return (
     <div style={styles.container}>
       <h2 style={styles.heading}>{shopName || email} - Shop Orders</h2>
       {message && <p style={styles.message}>{message}</p>}
+
       {orders.length > 0 ? (
-        <table style={styles.table}>
-          <thead>
-            <tr>
-              <th style={styles.th}>Order ID</th>
-              <th style={styles.th}>Customer Email</th>
-              <th style={styles.th}>Mobile Number</th> {/* Add Mobile Number Column */}
-              <th style={styles.th}>Products</th>
-              <th style={styles.th}>Total Quantity</th>
-              <th style={styles.th}>Total Price</th>
-              <th style={styles.th}>Address</th>
-              <th style={styles.th}>Created At</th>
-              <th style={styles.th}>Received</th>
-              <th style={styles.th}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {orders.map((order) => (
-              <tr key={order._id}>
-                <td style={styles.td}>{order._id}</td>
-                <td style={styles.td}>{order.email}</td>
-                <td style={styles.td}>{order.mobileNo}</td> {/* Display Mobile Number */}
-                <td style={styles.td}>
-                  {order.products.map((product, index) => (
-                    <div key={index}>
-                      {product.productName} (x{product.quantity})
-                    </div>
-                  ))}
-                </td>
-                <td style={styles.td}>
-                  {order.products.reduce((total, p) => total + p.quantity, 0)}
-                </td>
-                <td style={styles.td}>
-                  ₹
-                  {order.products
-                    .reduce((total, p) => total + p.price * p.quantity, 0)
-                    .toFixed(2)}
-                </td>
-                <td style={styles.td}>{order.address}</td>
-                <td style={styles.td}>
-                  {new Date(order.createdAt).toLocaleString()}
-                </td>
-                <td style={styles.td}>{order.received}</td>
-                <td style={styles.td}>
+        orders.map(order => {
+          const totalAmount = order.products.reduce(
+            (sum, p) => sum + p.price * p.quantity,
+            0
+          ).toFixed(2);
+          const isExpanded = expandedOrderId === order._id;
+
+          const orderCardStyle = {
+            ...styles.orderCard,
+            backgroundColor: order.received === 'Complete' ? '#d4edda' : '#f8d7da',
+            borderColor: order.received === 'Complete' ? '#c3e6cb' : '#f5c6cb',
+          };
+
+          return (
+            <div key={order._id} style={orderCardStyle}>
+              <div style={styles.summary} onClick={() => toggleExpand(order._id)}>
+                <span><strong>Email:</strong> {order.email}</span>
+                <span><strong>Total:</strong> ₹{totalAmount}</span>
+              </div>
+
+              {isExpanded && (
+                <div style={styles.details}>
+                  <p><strong>Mobile:</strong> {order.mobileNo}</p>
+                  <p><strong>Address:</strong> {order.address}</p>
+                  <p><strong>Created At:</strong> {new Date(order.createdAt).toLocaleString()}</p>
+                  <p><strong>Received:</strong> {order.received}</p>
+                  <div>
+                    <strong>Products:</strong>
+                    <ul>
+                      {order.products.map((product, index) => (
+                        <li key={index}>
+                          {product.productName} (x{product.quantity}) - ₹{product.price * product.quantity}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <p><strong>Total Quantity:</strong> {order.products.reduce((sum, p) => sum + p.quantity, 0)}</p>
+                  <p><strong>Total Amount:</strong> ₹{totalAmount}</p>
+
                   {order.received !== 'Complete' && (
-                    <button
-                      style={styles.button}
-                      onClick={() => handleStatusChange(order._id)}
-                    >
+                    <button style={styles.button} onClick={() => handleStatusChange(order._id)}>
                       Mark as Complete
                     </button>
                   )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                  <button style={{ ...styles.button, backgroundColor: '#dc3545' }} onClick={() => handleDelete(order._id)}>
+                    Delete Order
+                  </button>
+                </div>
+              )}
+            </div>
+          );
+        })
       ) : (
         <p style={styles.emptyMessage}>No orders found for your shop.</p>
       )}
@@ -132,52 +141,53 @@ const ShopkeeperOrder = () => {
 
 const styles: { [key: string]: React.CSSProperties } = {
   container: {
-    maxWidth: '1000px',
-    margin: '2rem auto',
-    padding: '2rem',
-    border: '1px solid #ddd',
-    borderRadius: '10px',
-    backgroundColor: '#f9f9f9',
-    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+    maxWidth: '600px',
+    margin: '0 auto',
+    padding: '1rem',
   },
   heading: {
     textAlign: 'center',
-    marginBottom: '1rem',
     fontSize: '1.5rem',
+    marginBottom: '1rem',
     color: '#007bff',
   },
-  table: {
-    width: '100%',
-    borderCollapse: 'collapse',
+  message: {
+    color: 'green',
+    textAlign: 'center',
+    marginBottom: '1rem',
   },
-  th: {
-    border: '1px solid #ddd',
-    padding: '0.75rem',
-    textAlign: 'left',
-    backgroundColor: '#007bff',
-    color: '#fff',
+  orderCard: {
+    border: '1px solid',
+    borderRadius: '8px',
+    marginBottom: '1rem',
+    padding: '1rem',
+    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
   },
-  td: {
-    border: '1px solid #ddd',
-    padding: '0.75rem',
-    textAlign: 'left',
+  summary: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    cursor: 'pointer',
+    fontSize: '1rem',
+    paddingBottom: '0.5rem',
+    borderBottom: '1px solid #eee',
+  },
+  details: {
+    marginTop: '0.75rem',
+    fontSize: '0.95rem',
+    lineHeight: 1.5,
   },
   button: {
+    marginTop: '0.5rem',
     padding: '0.5rem 1rem',
     backgroundColor: '#28a745',
     color: '#fff',
     border: 'none',
     borderRadius: '5px',
     cursor: 'pointer',
-  },
-  message: {
-    textAlign: 'center',
-    marginBottom: '1rem',
-    color: 'green',
+    marginRight: '1rem',
   },
   emptyMessage: {
     textAlign: 'center',
-    fontSize: '1.2rem',
     color: '#555',
   },
 };
